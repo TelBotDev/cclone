@@ -1236,7 +1236,6 @@ func newFs(ctx context.Context, name, path string, m configmap.Mapper) (*Fs, err
 // NewFs constructs an Fs from the path, container:path
 func NewFs(ctx context.Context, name, path string, m configmap.Mapper) (fs.Fs, error) {
 	f, err, maybeIsFile := newFs(ctx, name, path, m)
-
 	if err != nil {
 		return nil, err
 	}
