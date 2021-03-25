@@ -1152,7 +1152,7 @@ func newFs(ctx context.Context, name, path string, m configmap.Mapper) (*Fs, err
 	opt := new(Options)
 	err := configstruct.Set(m, opt)
 	if err != nil {
-		return nil, err, false
+		return nil, err
 	}
 	//-----------------------------------------------------------
 	maybeIsFile := false
@@ -1177,21 +1177,21 @@ func newFs(ctx context.Context, name, path string, m configmap.Mapper) (*Fs, err
 
 	err = checkUploadCutoff(opt.UploadCutoff)
 	if err != nil {
-		return nil, errors.Wrap(err, "drive: upload cutoff"), maybeIsFile
+		return nil, errors.Wrap(err, "drive: upload cutoff")
 	}
 	err = checkUploadChunkSize(opt.ChunkSize)
 	if err != nil {
-		return nil, errors.Wrap(err, "drive: chunk size"), maybeIsFile
+		return nil, errors.Wrap(err, "drive: chunk size")
 	}
 
 	oAuthClient, err := createOAuthClient(ctx, opt, name, m)
 	if err != nil {
-		return nil, errors.Wrap(err, "drive: failed when making oauth client"), maybeIsFile
+		return nil, errors.Wrap(err, "drive: failed when making oauth client")
 	}
 
 	root, err := parseDrivePath(path)
 	if err != nil {
-		return nil, err, maybeIsFile
+		return nil, err
 	}
 
 	ci := fs.GetConfig(ctx)
@@ -1220,22 +1220,22 @@ func newFs(ctx context.Context, name, path string, m configmap.Mapper) (*Fs, err
 	f.client = oAuthClient
 	f.svc, err = drive.New(f.client)
 	if err != nil {
-		return nil, errors.Wrap(err, "couldn't create Drive client"), maybeIsFile
+		return nil, errors.Wrap(err, "couldn't create Drive client")
 	}
 
 	if f.opt.V2DownloadMinSize >= 0 {
 		f.v2Svc, err = drive_v2.New(f.client)
 		if err != nil {
-			return nil, errors.Wrap(err, "couldn't create Drive v2 client"), maybeIsFile
+			return nil, errors.Wrap(err, "couldn't create Drive v2 client")
 		}
 	}
 
-	return f, nil, maybeIsFile
+	return f, nil
 }
 
 // NewFs constructs an Fs from the path, container:path
 func NewFs(ctx context.Context, name, path string, m configmap.Mapper) (fs.Fs, error) {
-	f, err, maybeIsFile := newFs(ctx, name, path, m)
+	f, err := newFs(ctx, name, path, m)
 	if err != nil {
 		return nil, err
 	}
@@ -1281,29 +1281,6 @@ func NewFs(ctx context.Context, name, path string, m configmap.Mapper) (fs.Fs, e
 	if err != nil {
 		return nil, err
 	}
-
-	//------------------------------------------------------
-	if(maybeIsFile){
-		file,err := f.svc.Files.Get(opt.RootFolderID).Fields("name","id","size","mimeType").SupportsAllDrives(true).Do()
-		if err == nil{
-			//fmt.Println("file.MimeType", file.MimeType)
-			if( "application/vnd.google-apps.folder" != file.MimeType && file.MimeType != ""){
-				tempF := *f
-				newRoot := ""
-				tempF.dirCache = dircache.New(newRoot, f.rootFolderID, &tempF)
-				tempF.root = newRoot
-				f.dirCache = tempF.dirCache
-				f.root = tempF.root
-
-				extension, exportName, exportMimeType, isDocument := f.findExportFormat(ctx, file)
-				obj, _ := f.newObjectWithExportInfo(ctx, file.Name, file, extension, exportName, exportMimeType, isDocument)
-				f.root = "isFile:"+file.Name
-				f.FileObj = &obj
-				return f, fs.ErrorIsFile
-			}
-		}
-	}
-	//------------------------------------------------------
 
 	// Find the current root
 	err = f.dirCache.FindRoot(ctx, false)
