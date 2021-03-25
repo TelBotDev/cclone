@@ -1281,7 +1281,6 @@ func NewFs(ctx context.Context, name, path string, m configmap.Mapper) (fs.Fs, e
 	if err != nil {
 		return nil, err
 	}
-
 	// Find the current root
 	err = f.dirCache.FindRoot(ctx, false)
 	if err != nil {
