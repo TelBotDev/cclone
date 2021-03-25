@@ -1221,7 +1221,7 @@ func NewFs(ctx context.Context, name, path string, m configmap.Mapper) (fs.Fs, e
 	}
 	// Parse config into Options struct
 	opt := new(Options)
-	err := configstruct.Set(m, opt)
+	err = configstruct.Set(m, opt)
 	if err != nil {
 		return nil, err
 	}
