@@ -675,7 +675,7 @@ func (f *Fs) shouldRetry(ctx context.Context, err error) (bool, error) {
 				// ������� ServiceAccountFilePath,���� changeSvc, ����
 				if(f.opt.ServiceAccountFilePath != ""){
 					f.waitChangeSvc.Lock()
-					f.changeSvc()
+					f.changeSvc(ctx)
 					f.waitChangeSvc.Unlock()
 					return true, err
 				}
@@ -697,7 +697,7 @@ func (f *Fs) shouldRetry(ctx context.Context, err error) (bool, error) {
 }
 
 // �滻 f.svc ����
-func (f *Fs) changeSvc(){
+func (f *Fs) changeSvc(ctx context.Context){
 	opt := &f.opt;
 	/**
 	 *  ��ȡsa�ļ��б�

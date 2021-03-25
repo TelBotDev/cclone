@@ -1,5 +1,7 @@
 module github.com/TelBotDev/cclone
 
+go 1.14
+
 require (
 	github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6 // indirect
 	github.com/coreos/go-etcd v2.0.0+incompatible // indirect
@@ -13,5 +15,3 @@ require (
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	google.golang.org/api v0.34.0
 )
-
-go 1.14
