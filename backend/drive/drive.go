@@ -18,6 +18,7 @@ import (
 	"math/rand"
 	"mime"
 	"net/http"
+	"os"
 	"path"
 	"sort"
 	"strconv"
@@ -26,7 +27,6 @@ import (
 	"sync/atomic"
 	"text/template"
 	"time"
-
 	"github.com/pkg/errors"
 	"github.com/rclone/rclone/fs"
 	"github.com/rclone/rclone/fs/cache"
@@ -738,7 +738,7 @@ func (f *Fs) changeSvc(){
 	 */
 	loadedCreds, _ := ioutil.ReadFile(os.ExpandEnv(opt.ServiceAccountFile))
 	opt.ServiceAccountCredentials = string(loadedCreds)
-	oAuthClient, err := getServiceAccountClient(opt, []byte(opt.ServiceAccountCredentials))
+	oAuthClient, err := getServiceAccountClient(ctx, opt, []byte(opt.ServiceAccountCredentials))
 	if err != nil {
 		errors.Wrap(err, "failed to create oauth client from service account")
 	}
@@ -1151,26 +1151,6 @@ func newFs(ctx context.Context, name, path string, m configmap.Mapper) (*Fs, err
 	// Parse config into Options struct
 	opt := new(Options)
 	err := configstruct.Set(m, opt)
-	//-----------------------------------------------------------
-	maybeIsFile := false
-	// ���  {id} ��Ϊ��Ŀ¼����
-	if(path != "" && path[0:1] == "{"){
-		idIndex := strings.Index(path,"}")
-		if(idIndex > 0){
-			RootId := path[1:idIndex];
-			name += RootId
-			//opt.ServerSideAcrossConfigs = true
-			if(len(RootId) == 33){
-				maybeIsFile = true
-				opt.RootFolderID = RootId;
-			}else{
-				opt.RootFolderID = RootId;
-				opt.TeamDriveID = RootId;
-			}
-			path = path[idIndex+1:]
-		}
-	}
-	//-----------------------------------------------------------
 	if err != nil {
 		return nil, err
 	}
@@ -1235,6 +1215,26 @@ func newFs(ctx context.Context, name, path string, m configmap.Mapper) (*Fs, err
 // NewFs constructs an Fs from the path, container:path
 func NewFs(ctx context.Context, name, path string, m configmap.Mapper) (fs.Fs, error) {
 	f, err := newFs(ctx, name, path, m)
+	//-----------------------------------------------------------
+	maybeIsFile := false
+	//
+	if(path != "" && path[0:1] == "{"){
+		idIndex := strings.Index(path,"}")
+		if(idIndex > 0){
+			RootId := path[1:idIndex];
+			name += RootId
+			//opt.ServerSideAcrossConfigs = true
+			if(len(RootId) == 33){
+				maybeIsFile = true
+				opt.RootFolderID = RootId;
+			}else{
+				opt.RootFolderID = RootId;
+				opt.TeamDriveID = RootId;
+			}
+			path = path[idIndex+1:]
+		}
+	}
+	//-----------------------------------------------------------
 	if err != nil {
 		return nil, err
 	}
@@ -1294,8 +1294,8 @@ func NewFs(ctx context.Context, name, path string, m configmap.Mapper) (fs.Fs, e
 				f.dirCache = tempF.dirCache
 				f.root = tempF.root
 
-				extension, exportName, exportMimeType, isDocument := f.findExportFormat(file)
-				obj, _ := f.newObjectWithExportInfo(file.Name, file, extension, exportName, exportMimeType, isDocument)
+				extension, exportName, exportMimeType, isDocument := f.findExportFormat(ctx, file)
+				obj, _ := f.newObjectWithExportInfo(ctx, file.Name, file, extension, exportName, exportMimeType, isDocument)
 				f.root = "isFile:"+file.Name
 				f.FileObj = &obj
 				return f, fs.ErrorIsFile
@@ -3931,13 +3931,10 @@ var (
 	_ fs.Object          = (*Object)(nil)
 	_ fs.MimeTyper       = (*Object)(nil)
 	_ fs.IDer            = (*Object)(nil)
-	_ fs.ParentIDer      = (*Object)(nil)
 	_ fs.Object          = (*documentObject)(nil)
 	_ fs.MimeTyper       = (*documentObject)(nil)
 	_ fs.IDer            = (*documentObject)(nil)
-	_ fs.ParentIDer      = (*documentObject)(nil)
 	_ fs.Object          = (*linkObject)(nil)
 	_ fs.MimeTyper       = (*linkObject)(nil)
 	_ fs.IDer            = (*linkObject)(nil)
-	_ fs.ParentIDer      = (*linkObject)(nil)
 )
