@@ -10,6 +10,5 @@ import (
 )
 
 func main() {
-	fs.Version = fs.Version+"-mod1.54.1"
 	cmd.Main()
 }
