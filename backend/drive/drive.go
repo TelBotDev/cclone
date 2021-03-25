@@ -1152,25 +1152,46 @@ func newFs(ctx context.Context, name, path string, m configmap.Mapper) (*Fs, err
 	opt := new(Options)
 	err := configstruct.Set(m, opt)
 	if err != nil {
-		return nil, err
+		return nil, err, false
 	}
+	//-----------------------------------------------------------
+	maybeIsFile := false
+	//
+	if(path != "" && path[0:1] == "{"){
+		idIndex := strings.Index(path,"}")
+		if(idIndex > 0){
+			RootId := path[1:idIndex];
+			name += RootId
+			//opt.ServerSideAcrossConfigs = true
+			if(len(RootId) == 33){
+				maybeIsFile = true
+				opt.RootFolderID = RootId;
+			}else{
+				opt.RootFolderID = RootId;
+				opt.TeamDriveID = RootId;
+			}
+			path = path[idIndex+1:]
+		}
+	}
+	//-----------------------------------------------------------
+
 	err = checkUploadCutoff(opt.UploadCutoff)
 	if err != nil {
-		return nil, errors.Wrap(err, "drive: upload cutoff")
+		return nil, errors.Wrap(err, "drive: upload cutoff"), maybeIsFile
 	}
 	err = checkUploadChunkSize(opt.ChunkSize)
 	if err != nil {
-		return nil, errors.Wrap(err, "drive: chunk size")
+		return nil, errors.Wrap(err, "drive: chunk size"), maybeIsFile
 	}
 
 	oAuthClient, err := createOAuthClient(ctx, opt, name, m)
 	if err != nil {
-		return nil, errors.Wrap(err, "drive: failed when making oauth client")
+		return nil, errors.Wrap(err, "drive: failed when making oauth client"), maybeIsFile
 	}
 
 	root, err := parseDrivePath(path)
 	if err != nil {
-		return nil, err
+		return nil, err, maybeIsFile
 	}
 
 	ci := fs.GetConfig(ctx)
@@ -1199,42 +1220,23 @@ func newFs(ctx context.Context, name, path string, m configmap.Mapper) (*Fs, err
 	f.client = oAuthClient
 	f.svc, err = drive.New(f.client)
 	if err != nil {
-		return nil, errors.Wrap(err, "couldn't create Drive client")
+		return nil, errors.Wrap(err, "couldn't create Drive client"), maybeIsFile
 	}
 
 	if f.opt.V2DownloadMinSize >= 0 {
 		f.v2Svc, err = drive_v2.New(f.client)
 		if err != nil {
-			return nil, errors.Wrap(err, "couldn't create Drive v2 client")
+			return nil, errors.Wrap(err, "couldn't create Drive v2 client"), maybeIsFile
 		}
 	}
 
-	return f, nil
+	return f, nil, maybeIsFile
 }
 
 // NewFs constructs an Fs from the path, container:path
 func NewFs(ctx context.Context, name, path string, m configmap.Mapper) (fs.Fs, error) {
-	f, err := newFs(ctx, name, path, m)
-	//-----------------------------------------------------------
-	maybeIsFile := false
-	//
-	if(path != "" && path[0:1] == "{"){
-		idIndex := strings.Index(path,"}")
-		if(idIndex > 0){
-			RootId := path[1:idIndex];
-			name += RootId
-			//opt.ServerSideAcrossConfigs = true
-			if(len(RootId) == 33){
-				maybeIsFile = true
-				opt.RootFolderID = RootId;
-			}else{
-				opt.RootFolderID = RootId;
-				opt.TeamDriveID = RootId;
-			}
-			path = path[idIndex+1:]
-		}
-	}
-	//-----------------------------------------------------------
+	f, err, maybeIsFile := newFs(ctx, name, path, m)
+
 	if err != nil {
 		return nil, err
 	}
