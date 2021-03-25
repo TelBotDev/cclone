@@ -537,7 +537,7 @@ type Options struct {
 	Scope                     string               `config:"scope"`
 	RootFolderID              string               `config:"root_folder_id"`
 	ServiceAccountFile        string               `config:"service_account_file"`
-	// Ìí¼ÓÒ»¸ö±äÁ¿
+	// ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	ServiceAccountFilePath    string               `config:"service_account_file_path"`
 	ServiceAccountCredentials string               `config:"service_account_credentials"`
 	TeamDriveID               string               `config:"team_drive"`
@@ -672,7 +672,7 @@ func (f *Fs) shouldRetry(ctx context.Context, err error) (bool, error) {
 		if len(gerr.Errors) > 0 {
 			reason := gerr.Errors[0].Reason
 			if reason == "rateLimitExceeded" || reason == "userRateLimitExceeded" {
-				// Èç¹û´æÔÚ ServiceAccountFilePath,µ÷ÓÃ changeSvc, ÖØÊÔ
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ServiceAccountFilePath,ï¿½ï¿½ï¿½ï¿½ changeSvc, ï¿½ï¿½ï¿½ï¿½
 				if(f.opt.ServiceAccountFilePath != ""){
 					f.waitChangeSvc.Lock()
 					f.changeSvc()
@@ -696,11 +696,11 @@ func (f *Fs) shouldRetry(ctx context.Context, err error) (bool, error) {
 	return false, err
 }
 
-// Ìæ»» f.svc º¯Êý
+// ï¿½æ»» f.svc ï¿½ï¿½ï¿½ï¿½
 func (f *Fs) changeSvc(){
 	opt := &f.opt;
 	/**
-	 *  »ñÈ¡saÎÄ¼þÁÐ±í
+	 *  ï¿½ï¿½È¡saï¿½Ä¼ï¿½ï¿½Ð±ï¿½
 	 */
 	if(opt.ServiceAccountFilePath != "" && len(f.ServiceAccountFiles) == 0){
 		f.ServiceAccountFiles = make(map[string]int)
@@ -716,12 +716,12 @@ func (f *Fs) changeSvc(){
 			}
 		}
 	}
-	// Èç¹û¶ÁÈ¡ÎÄ¼þ¼Ðºó»¹ÊÇ0 , ÍË³ö
+	// ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½Ä¼ï¿½ï¿½Ðºï¿½ï¿½ï¿½0 , ï¿½Ë³ï¿½
 	if(len(f.ServiceAccountFiles) <= 0){
 		return ;
 	}
 	/**
-	 *  ´ÓsaÎÄ¼þÁÐ±í Ëæ»úÈ¡Ò»¸ö£¬²¢É¾³ýÁÐ±íÖÐµÄÔªËØ
+	 *  ï¿½ï¿½saï¿½Ä¼ï¿½ï¿½Ð±ï¿½ ï¿½ï¿½ï¿½È¡Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¾ï¿½ï¿½ï¿½Ð±ï¿½ï¿½Ðµï¿½Ôªï¿½ï¿½
 	 */
 	r := rand.Intn(len(f.ServiceAccountFiles))
 	for k := range f.ServiceAccountFiles {
@@ -730,11 +730,11 @@ func (f *Fs) changeSvc(){
 		}
 		r--
 	}
-	// ´Ó¿â´æÖÐÉ¾³ý
+	// ï¿½Ó¿ï¿½ï¿½ï¿½ï¿½É¾ï¿½ï¿½
 	delete(f.ServiceAccountFiles, opt.ServiceAccountFile)
 
 	/**
-	 * ´´½¨ client ºÍ svc
+	 * ï¿½ï¿½ï¿½ï¿½ client ï¿½ï¿½ svc
 	 */
 	loadedCreds, _ := ioutil.ReadFile(os.ExpandEnv(opt.ServiceAccountFile))
 	opt.ServiceAccountCredentials = string(loadedCreds)
@@ -1153,7 +1153,7 @@ func newFs(ctx context.Context, name, path string, m configmap.Mapper) (*Fs, err
 	err := configstruct.Set(m, opt)
 	//-----------------------------------------------------------
 	maybeIsFile := false
-	// Ìí¼Ó  {id} ×÷Îª¸ùÄ¿Â¼¹¦ÄÜ
+	// ï¿½ï¿½ï¿½  {id} ï¿½ï¿½Îªï¿½ï¿½Ä¿Â¼ï¿½ï¿½ï¿½ï¿½
 	if(path != "" && path[0:1] == "{"){
 		idIndex := strings.Index(path,"}")
 		if(idIndex > 0){
