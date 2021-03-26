@@ -659,7 +659,7 @@ func (f *Fs) shouldRetry(ctx context.Context, err error) (bool, error) {
 			if(f.opt.ServiceAccountFilePath != ""){
 				
 				ci := fs.GetConfig(ctx)
-				ci.MaxTransfer = int64((ci.MaxTransfer)) + int64((ci.MaxTransfer))
+				ci.MaxTransfer =  fs.SizeSuffix(int64((ci.MaxTransfer)) + int64((ci.MaxTransfer)))
 				
 				f.waitChangeSvc.Lock()
 				f.changeSvc(ctx)
