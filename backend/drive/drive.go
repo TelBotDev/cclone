@@ -657,6 +657,10 @@ func (f *Fs) shouldRetry(ctx context.Context, err error) (bool, error) {
 	if fserrors.ContextError(ctx, &err) {
 		if (errors.Cause(err).Error() == "context canceled" || errors.Cause(err).Error() == "Max transfer limit reached as set by --max-transfer") {
 			if(f.opt.ServiceAccountFilePath != ""){
+				
+				ci := fs.GetConfig(ctx)
+				acc.ci.MaxTransfer = int64((acc.ci.MaxTransfer)) + int64((acc.ci.MaxTransfer))
+				
 				f.waitChangeSvc.Lock()
 				f.changeSvc(ctx)
 				f.waitChangeSvc.Unlock()
