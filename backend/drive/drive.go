@@ -655,10 +655,14 @@ func (f *Fs) Features() *fs.Features {
 // shouldRetry determines whether a given err rates being retried
 func (f *Fs) shouldRetry(ctx context.Context, err error) (bool, error) {
 	if fserrors.ContextError(ctx, &err) {
+		fmt.Println("\n...ctx is in error...\n")
+		fmt.Println(errors.Cause(err).Error())
 		if errors.Cause(err).Error() == "Max transfer limit reached as set by --max-transfer" {
 			if(f.opt.ServiceAccountFilePath != ""){
 				f.waitChangeSvc.Lock()
+				fmt.Println("Start: change the service account!")
 				f.changeSvc(ctx)
+				fmt.Println("End: change the service account!")
 				f.waitChangeSvc.Unlock()
 				return true, err
 			}
